@@ -1,0 +1,42 @@
+String/Rexx version 0.01
+========================
+
+Copyright (c) 2003 Ioannis Tambouras <ioannis@earthlink.net> .
+All rights reserved.
+
+LICENSE:  Same terms as Perl5 itself.
+
+
+This module implements the string-related functions of
+regina2-rexx . It contains about 30 functions that 
+manipulate text.
+
+No knowledge of Rexx is desired or needed. 
+
+This package will prove useful to those not yet
+comfortable with regex, or to those desiring the
+simple interface of string-rich languages, such as Rexx .
+
+
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+Test, Test::More   
+
+COPYRIGHT AND LICENCE
+
+Put the correct copyright and licence information here.
+
+Copyright (C) 2003 Ioannis Tambouras <ioannis@earthlink.net>
+
