@@ -2,8 +2,9 @@ use strict      ;
 use Test::More  ;
 use String::Rexx qw( wordlength ) ;
 
-
 BEGIN { plan tests =>  7  };
+
+
 
 ### Common Usage
 is  wordlength('The Republic of Perl', 1)    ,    3 ;

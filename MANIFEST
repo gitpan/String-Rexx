@@ -1,3 +1,6 @@
+CVS/Entries
+CVS/Repository
+CVS/Root
 Changes
 MANIFEST
 Makefile.PL
@@ -28,4 +31,13 @@ t/21_compare.t
 t/22_changestr.t
 t/23_center.t
 t/24_xrange.t
+t/25_wordindex.t
+t/26_translate.t
+t/27_datatype.t
+t/28_wordpos.t
+t/29_Abbrev.t
+t/CVS/29_Abbrev.t,t
+t/CVS/Entries
+t/CVS/Repository
+t/CVS/Root
 t/Makefile

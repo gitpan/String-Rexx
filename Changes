@@ -1,5 +1,18 @@
 Revision history for Perl extension String::Rexx.
 
+0.02  Thu Jul 30
+    -  This release is institutes stroger refactoring and paramaeter checking:
+    -  Added Params::Validate  to center, copies, errortext, left, 
+       right, space, verify, insert, lastpos, overlay, wordindex, xrange,
+       compare, delstr, d2h, wordlength, word, wordindex, subword, and wordpos.
+    -  Added the new fuction abbrev()
+    -  wordpos(): on failure, it now returns 0 instead of undef. 
+    -  Refactored strip(). Added exceptions and (skipable) exception tests.
+    -  These fuctions now count \S sequences as words: words, delword,
+       subword.
+    -  translate(), changed mandatory options and some funtionality. See pod .
+
+
 0.01  Tue Jul  8 02:13:19 2003
 	- original version; created by h2xs 1.21 with options
 		-X -n String::Rexx

@@ -5,9 +5,6 @@ use String::Rexx qw( centre
 		     d2c
 		     d2h
 		   );
- 
-
-
 
 
 ######### Usefull Constants

@@ -4,14 +4,12 @@ String/Rexx version 0.01
 Copyright (c) 2003 Ioannis Tambouras <ioannis@earthlink.net> .
 All rights reserved.
 
-LICENSE:  Same terms as Perl5 itself.
-
 
 This module implements the string-related functions of
-regina2-rexx . It contains about 30 functions that 
+regina2-rexx, with approximately 30 functions that 
 manipulate text.
 
-No knowledge of Rexx is desired or needed. 
+No knowledge of Rexx is needed or desired. 
 
 This package will prove useful to those not yet
 comfortable with regex, or to those desiring the
@@ -28,15 +26,18 @@ To install this module type the following:
    make test
    make install
 
+
 DEPENDENCIES
 
-This module requires these other modules and libraries:
+This module requires other modules and libraries:
+Test::More 
+Params::Validate. 
 
-Test, Test::More   
+The module Test::Exception is
+suggested during testing but it is optional.
+
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
-
 Copyright (C) 2003 Ioannis Tambouras <ioannis@earthlink.net>
-
+LICENSE:  Same terms as Perl5 itself.

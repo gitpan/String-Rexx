@@ -3,6 +3,8 @@ package String::Rexx;
 use 5.006;
 use strict;
 use warnings;
+use Carp;
+use Params::Validate ':all' ;
 
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
@@ -13,15 +15,14 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
                       centre     center     changestr    compare    copies     countstr 
 		      delstr     delword    datatype     d2c        d2h
 		      errortext  insert     lastpos      left       Length     overlay    
-		      Pos        right      Reverse   
+		      Pos        right      Reverse      Abbrev
 		      space      Substr     strip        subword    translate  verify 
 		      word       wordindex  wordlength   wordpos    words      xrange   
 ) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our $VERSION = '0.01';
-
+our $VERSION = '0.02';
 
 
 1;
@@ -46,6 +47,12 @@ related to hexsting, binstring, and decimal conversions.
 
 
 =over
+
+=item Abbrev( 'long', 'short' [, len] )
+
+ Return 1 if string $short is a shortcut for string $long. And optionally, $len
+ must not be greater than what the number of charecters matched with string $shoft. 
+ Otherwise, return 0.
 
 =item countstr( 'pat', 'string' )
 
@@ -180,10 +187,12 @@ related to hexsting, binstring, and decimal conversions.
   words to return (default is as many as possible.)
   start = N = 1,2,...
 
-=item translate( 'string', 'new' , 'old',  [, pad]  )
+=item translate( 'string' [, 'new' , 'old'  [, pad] ]  )
 
   The translitaration oparator. It returns a strings where all characters 
   in 'old' and transformed to the corresponding characters in 'new' .
+  In the special case when all options are absent, it translates $string
+  to upper case.
 
 =item verify( 'string', 'chars' [, sense] [, start] )
 
@@ -228,13 +237,31 @@ L<regina(1)>.
 
 =cut
 
-sub center ($$;$) {
-	my ($str , $len , $char) = @_ ;
-	$str = substr( $str, 0, $len );     # if they asked less than they gave
+sub Abbrev ($$;$) {
+         ( local $_ , my ( $short , $len )) =  validate_pos @_ ,
+                                        { type  => SCALAR              },
+                                        { type  => SCALAR              },
+                                        { regex => qr/^\+?\s*\d+$/, 
+                                                   optional=>1         };
 
-        my $offset =  (($len|| return '') -  length $str)/2  ;
-	(($char||' ') x $offset)   . $str  .  (($char||' ') x ($offset+0.6) )   ; 
+
+          /^$short/  ||  ((defined $len)&&length $short >= $len)    ? 1
+                                                                    : 0  ;
 }
+
+
+sub center ($$;$) {
+
+       my ($str , $len , $char) =  validate_pos @_  , { type  => SCALAR                   } ,
+                                                      { regex => qr/^\+?\s*\d+$/          } ,
+						      { regex => qr/^.$/ , default => ' ' },
+                                                      ;
+
+       $str       =  substr( $str, 0, $len )   ;  # if they asked less space than given text
+       my $offset =  ($len -  length $str)/2  ;
+       ($char x $offset)   . $str  .  ($char x ($offset+0.6) )   ;
+}
+
 
 sub centre ($$;$)  { &center }
 
@@ -245,18 +272,24 @@ sub  changestr ($$$) {
 }
 
 sub compare ($$;$)  {
-	my ( $a, $b , $char) =  @_ ;
-	my ($Alen , $Blen)   =  ( length($a)  , length($b) );
-	my $max              =  ($Alen > $Blen) ? $Alen : $Blen ;
+        my ( $a, $b , $char) =  validate_pos  @_ ,
+                                     { type  => SCALAR },
+                                     { type  => SCALAR },
+                                     { regex => qr/^.$/ , default => ' ' };
 
-        substr( $a, $Alen )  = ($char||' ')  x ($max - $Alen) ;
-        substr( $b, $Blen )  = ($char||' ')  x ($max - $Blen) ;
-	$a cmp $b  && $max ;
+        my ($Alen , $Blen)   =  ( length($a)  , length($b) );
+        my $max              =  ($Alen > $Blen) ? $Alen : $Blen ;
+
+        substr( $a, $Alen )  =  $char  x ($max - $Alen) ;
+        substr( $b, $Blen )  =  $char  x ($max - $Blen) ;
+        $a cmp $b  && $max ;
 }
 
+
 sub copies ($$) {
-	my ( $string, $num ) = @_ ;
-	$string x= $num ;
+        my ( $string, $num ) = validate_pos  @_  , { type  => SCALAR           } ,
+                                                   { regex => qr/^\+?\s*\d+$/  } ,;
+        $string x= $num ;
 }
 
 sub countstr ($$)  {
@@ -285,77 +318,105 @@ sub d2c ($) {
       chr(shift) ;
 }
 
-sub d2h ($;$) {
-      my ($decimal ) = shift      ;
-      my $len        = shift || 0 ;
 
-      sprintf '%0'.$len.'x',     $decimal ;
+sub d2h ($;$) {
+      my ($decimal, $len ) = validate_pos  @_ ,
+                             { regex => qr/^\+?\s*\d+$/             },
+                             { regex => qr/^\+?\s*\d+$/, default=>0 };
+
+      sprintf '%0'.$len.'x',  $decimal ;
 }
 
 
 
 sub  delstr ($$;$)  {
-	my ( $string , $start, $len ) = @_ ;
-	$string || return '' ; 
-	$len = (defined $len) ? $len : length $string ;
+        my ( $string , $start, $len ) = validate_pos  @_ ,
+                                { type  => SCALAR                    },
+                                { regex => qr/^\+?\s*\d+$/           },
+                                { regex => qr/^\+?\s*\d+$/ ,
+                                           default => length $_[0]   } ;
 
-        substr( $string, $start-1, $len, '' ) ;
-	$string;
+        substr( ($string || return'' ) , $start-1, $len, '' ) ;
+        $string;
 }
+
 
 sub  delword ($$;$)   {
-	my ($str, $start, $len ) = @_ ;
-        $len = (defined $len)  ?  $len  
-			       :  length $str;
-        $str  =~ m/\w+\s*/gc    for (1..$start-1) ; 
-	$str  =~ s/ \G (?:\w+\s*){0,$len} //x  ;
-	$str ;
+        my ($str, $start, $len ) = validate_pos  @_ ,
+                                      { type  => SCALAR              },
+                                      { regex => qr/^\+?\s*\d+$/     },
+                                      { regex => qr/^\+?\s*\d+$/ ,
+                                        default => length $_[0]      };
+
+        $str  =~  m/\S+\s*/gc      for 1..--$start ;
+        $str  =~  s/ \G (?:\S+\s*){0,$len} //x     ;
+        $str ;
 }
+ 
 
 sub errortext ($) {
-        local $! = shift();
-	$! ;
+        local ($!)  = validate_pos @_ , { regex => qr/^\+?\s*\d+$/  } ,;
+        $! ;
 }
 
-sub insert ($$;$$$) {
-         my ($source , $target, $pos, $len, $char) = @_ ;
-         my $targlen = length $target   ,   $pos  = $pos||0  ;
 
-	 substr( $source, ($len||length $source) ) = '' ;
-	 ($pos <= $targlen) ?  substr( $target, $pos ,  0 , $source )  
-	   	            :  ($target .=   ($char||' ') x ($pos-$targlen) . $source ) ;
-	 $target;
+sub insert ($$;$$$) {
+         my ($source , $target, $pos, $len, $char) = validate_pos @_ ,
+                                     { type  => SCALAR                                    },
+                                     { type  => SCALAR                                    },
+                                     { regex => qr/^\+?\s*\d+$/ , default => 0            },
+                                     { regex => qr/^\+?\s*\d+$/ , default => length $_[0] },
+                                     { regex => qr/^.$/         , default => ' '          };
+
+         my $targlen             =  length $target   ;
+         substr( $source, $len ) =  '' ;
+
+         ($pos <= $targlen) ?  substr( $target, $pos ,  0 , $source )
+                            :  ($target .=   $char x ($pos-$targlen) . $source ) ;
+         $target;
 }
 
 sub  lastpos  ($$;$)  {
-         my ($needle , $hay, $start ) = @_ ;
-	 $start = (defined $start)  ? $start-1 
-				    : length $hay ;
-	 1 + rindex(  $hay,  ($needle || return 0),    $start  );
+         my ($needle , $hay, $start ) = validate_pos  @_ ,
+				       { type => SCALAR                    },
+				       { type => SCALAR                    },
+				       { regex => qr/^\+?\s*\d+$/,          
+						  default => length $_[1]   };
+
+         1 + rindex(  $hay,  ($needle || return 0),    --$start  );
 }
 
 
 sub left ($$;$)  {
-       my ($str, $len, $char) = @_ ;
-       my $padding = ($char||' ')  x ( ($len||return '')  - length $str) ;
-       substr( $str,  0,  ($len||0) ) . $padding ;
+        my ($str, $len, $char) = validate_pos  @_  ,
+                                          { type  => SCALAR              },
+                                          { regex => qr/^\+?\s*\d+$/     },
+                                          { type  => SCALAR, default=>' '},;
+
+        my $padding = $char  x  (($len||return '') - length $str) ;
+        substr( $str,  0,  $len) . $padding ;
 }
+
 
 sub Length ($)  {
        length shift();
 }
 
 sub overlay ($$;$$$)  {
-      my ($source , $target, $start, $len, $char ) = @_ ;
-      $start  = (defined $start)  ? $start - 1    
-			          : 0 ;
+      my ($source , $target, $start, $len, $char ) = validate_pos @_ ,
+                                       { type  => SCALAR },
+                                       { type  => SCALAR },
+                                       { regex => qr/^\+?\s*\d+$/ , default => 1            },
+                                       { regex => qr/^\+?\s*\d+$/ , default => length $_[0] },
+                                       { regex => qr/^.$/         , default => ' '          };
 
-      $source .= ($char|| ' ') x  (($len||0) - length $source) ;
-      substr( $source,  ($len||length $source))  = ''  ;  
-
-      substr( $target, $start, (length $source) , $source ) ;
+      $source                 .=   $char x ($len-length $source) ;
+      substr( $source, $len )  =   ''                            ;
+      substr( $target, --$start, (length $source) , $source )    ;
       $target;
 }
+
+
 
 sub Pos ($$;$)  {
          my ($needle , $hay, $start ) = @_ ;
@@ -363,24 +424,31 @@ sub Pos ($$;$)  {
 }
 
 sub right ($$;$)  {
-       my ($str, $len, $char) = @_ ;
-       my $padding = ($char||' ')  x ( ($len||return '')  - length $str) ;
-       $padding . substr( $str, - ($len||0) );
+        my ($str, $len, $char) = validate_pos  @_  ,
+                                          { type  => SCALAR              },
+                                          { regex => qr/^\+?\s*\d+$/     },
+                                          { type  => SCALAR, default=>' '},;
+
+        my $padding = $char  x  (($len||return '') - length $str) ;
+        $padding . substr( $str, - $len);
 }
+
 
 sub Reverse ($)   { 
 	scalar reverse shift() ;
 }
 
-sub  space ($;$$)  {
-        local $_ = shift;   
-        my ($len , $char) = @_ ;
-	$len = (defined $len) ? ($len||0) : 1 ;
 
-        my $space = ($char || ' ')   x $len;
-        s/^\s*|\s*$//g       ;     # strip leading & trailing spaces
-        s/\s+/$space/g  , $_ ;     # add proper spacing and return $_
+sub  space ($;$$)  {
+        local $_ = shift;
+        my ($len , $char) =  validate_pos  @_ ,
+                                  { regex => qr/^\+?\s*\d+$/  , default => 1   },
+                                  { regex => qr/^.$/          , default => ' ' } ,;
+
+        s/^\s*|\s*$//g                  ;     # strip leading & trailing spaces
+        s/\s+/{ $char x $len }/eg  , $_ ;     # add proper spacing and return $_
 }
+
 
 sub  Substr ($$;$$)  {
         my ($str, $start, $len, $char) = @_ ;
@@ -390,91 +458,121 @@ sub  Substr ($$;$$)  {
 }
 
 sub  strip ($;$$)  {
-	my ($str, $direction, $char) = @_ ;
+        my ( $str, $direction, $char )  = @_ ;
 
-        my $R = $char  || '\s' ;
-	my @patterns =  ($direction =~ /^leading\s*$/i ) 
-				? qr/^$R*/ 
-				: ($direction =~ /^trailing\s*$/i) 
-					? qr/$R*$/
-					: ($direction =~ /^both\s*$/i) 
-						? ( qr/^$R*/ ,  qr/$R*$/ ) 
-						: return undef;
+        $direction    =~  s/\s*$//             ;
+        my $R         =  $char || '\s'         ;
+        my $both      =  [qr/^$R*/, qr/$R*$/ ] ;
 
-	$str =~ s/$_//   for( @patterns )  ;
-	$str;
+        my $patterns  = { leading  => [ qr/^$R*/ ] ,
+                          trailing => [ qr/$R*$/ ] ,
+                          both     => $both        ,
+                          ''       => $both        ,
+                        }->{ lc $direction } || croak "incorrect call to routine\n";
+
+        $str =~ s/$_//   for @{$patterns}   ;
+        $str;
 }
 
 
-sub translate ($$$;$) {
+
+sub translate ($;$$$) {
         $_ = shift ,   my ($new, $old, $pad)  = @_ ;
-        $pad = $pad || ' ' ;
+        return uc     unless ( $new || $old );
+        return undef  unless  defined $old;
 
+        $pad = $pad || ' ' ;
         eval "y/$old/$new$pad/" ;
-        $_ ;
+        $_;
 }
+
 
 sub verify ($$;$$)   {
-	   local $_ = shift,   my ($s, $option, $start)    = @_ ;
-	   return 1 unless $s ne '' ;
+           ( local $_,  my ($s, $option, $start))  =
+                         validate_pos  @_ , { type  => SCALAR                        },
+                                            { type  => SCALAR                        },
+                                            { regex => qr/^(M|N)$/i, default => 'M'  },
+                                            { type  => SCALAR, default => 1          },;
 
-           my $pat = (($option||'M') =~ /^M$/i)  ? qr/[$s]*/ 
-					         : qr/[^$s]*/ ;
+           return 1  unless $s ;
+           my $pat  =    ($option =~ /^M$/i)   ? qr/[$s]*/
+                                               : qr/[^$s]*/  ;
+           pos()    =  --$start ;
 
-           pos() = (defined $start) ? $start-1 : 0 ;
            /$pat/gx ;
            (pos() == length)  ? 0 : 1+pos ;
 }
 
+
+
 sub word  ($$)  {
-	 local $_ = shift;
-	 (split) [ shift()-1]  || ""  ;
+         (local $_, my $num)  = validate_pos @_ ,
+                                     { type => SCALAR },
+                                     { regex => qr/^\+?\s*\d+$/ },;
+
+         (split) [ $num -1 ]  || ''  ;
 }
 
 
+
 sub  wordindex ($$)  {
-        my ($str , $num) = @_ ;
+        my ($str , $num) = validate_pos  @_ , { type => SCALAR           },
+                                              { regex => qr/^\+?\s*\d+$/ },;
 
-        pos($str) = 0 ;
-        $str =~ / \s*/gx ;
-
-        $str =~ / \w+ \s+ /xg  for (1..$num-1) ;
+        pos($str) =   0  ;
+        $str      =~  / \s*/gx  ;
+        $str      =~  / \S+ \s+ /xg     for  1..$num-1 ;
         1+ pos $str;
 }
 
 
+
 sub  wordlength ($$)  {
-	local $_ = shift ;   my $num = shift;
-	length(  (split)[$num-1]   ||  '' ) ;
+        (local $_ , my $num ) = validate_pos @_ ,
+                                  { type  => SCALAR },
+                                  { regex => qr/^\+?\s*\d+$/ },;
+
+        length(  (split)[$num-1]   ||  '' ) ;
 }
 
 
 sub  subword ($$;$)  {
-	my ($string, $start, $len)  =  @_ ;
-        
-        $string =~ /\w+\s*/g  for (1..$start-1); 
-	$b = pos($string) || 0  ;
+        my ($string, $start, $len)  =  validate_pos  @_ ,
+                                         { type => SCALAR                           },
+                                         { regex => qr/^\+?\s*\d+$/                 },
+                                         { regex => qr/^\+?\s*\d+$/ , optional => 1 };
 
-        (defined $len)  ? do{ $string =~ /\w+/gc  for (1..$len); 
-		              substr $string, $b, ((pos $string ||0)-($b)) }
-                        : substr $string, $b;
+
+        $string         =~  /\S+\s*/g    for 1..$start-1;
+        $b              =  pos($string) || 0            ;
+        (defined $len)  ?  do{ $string =~ /\S+/gc  for 1..$len;
+                               substr $string, $b, ((pos $string ||0)-($b)) }
+                        :  substr $string, $b;
 }
+ 
 
 sub wordpos ($$)  {
-       my  $pat  =  shift  ;
-       local $_  =  shift  ;
+      ( my $pat, local $_ )   =  validate_pos @_ , { type => SCALAR },
+                                                   { type => SCALAR };
 
-       / (?=\b\w*$pat) /xg    ?  pos() + 1
-                              :  undef;
+       / (?=\b\w*$pat) /xg     ?  1+ pos
+                               :  0;
 }
+
 
 sub words ($)  {
-	local $_ = shift;
-	scalar ( my @arr = /(\w+)/g   );
+	local $_    =  shift;
+        scalar ( () =  /(\S+)/g   );
 }
 
+
 sub xrange ($$) {
-	 join('', (shift)..(shift));
+         my ($start, $end ) = validate_pos  @_ ,
+                                  { regex => qr/^.$/ },
+                                  { regex => qr/^.$/ };
+
+         join '', $start..$end ;
 }
+
 
 
