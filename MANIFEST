@@ -1,6 +1,3 @@
-CVS/Entries
-CVS/Repository
-CVS/Root
 Changes
 MANIFEST
 Makefile.PL
@@ -36,8 +33,4 @@ t/26_translate.t
 t/27_datatype.t
 t/28_wordpos.t
 t/29_Abbrev.t
-t/CVS/29_Abbrev.t,t
-t/CVS/Entries
-t/CVS/Repository
-t/CVS/Root
 t/Makefile

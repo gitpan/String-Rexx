@@ -22,7 +22,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 1;
@@ -30,7 +30,7 @@ __END__
 
 =head1 NAME
 
-String::Rexx - Perl extension for blah blah blah
+String::Rexx - Perl implementation of Rexx string functions
 
 =head1 SYNOPSIS
 
