@@ -1,4 +1,5 @@
 use Test::More ;
+use Test::Exception;
 use String::Rexx qw( Abbrev );
 
 

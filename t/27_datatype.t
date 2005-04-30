@@ -1,31 +1,32 @@
 use strict     ;
 use Test::More ;
+use Test::Exception;
 use String::Rexx qw( datatype );
  
 
 
-BEGIN { plan tests =>  15  };
+BEGIN { plan tests =>  17  };
 
 
-### Basic Usag e
-is   datatype( '3'   )         ,  'NUM'   ; 
-is   datatype( '33'  )         ,  'NUM'   ; 
-is   datatype( 'aa'  )         ,  'LIT'   ; 
-is   datatype( '33'  , 'NUM')  ,    1     ; 
-is   datatype( '33'  , 'LIT')  ,    0     ; 
-is   datatype( 'a'   , 'LIT')  ,    1     ; 
-is   datatype( 'aa'  , 'LIT')  ,    1     ; 
-is   datatype( 'aa'  , 'NUM')  ,    0     ; 
+### Basic Usage
+is   datatype( '3'   )          =>   'NUM'     ; 
+is   datatype( '33'  )          =>   'NUM'     ; 
+is   datatype( 'aa'  )          =>   'CHAR'    ; 
+is   datatype( '33'  , 'N')     =>       1     ; 
+is   datatype( '33'  , 'A')     =>       1     ; 
+is   datatype( 'a'   , 'A')     =>       1     ; 
+is   datatype( 'aa'  , 'A')     =>       1     ; 
+is   datatype( 'aa'  , 'N')     =>       0     ; 
 
 
-is   datatype( '0'   , 'NUM')  ,    1     ; 
-is   datatype( '0.0' , 'NUM')  ,    1     ; 
-is   datatype( '0.1' , 'NUM')  ,    1     ; 
-is   datatype( '00'  , 'NUM')  ,    1     ; 
-is   datatype( '0a'  , 'LIT')  ,    1     ; 
-is   datatype( '0.a' , 'LIT')  ,    1     ; 
+is   datatype( '0'   , 'N')     =>       1     ; 
+is   datatype( '0.0' , 'N')     =>       1     ; 
+is   datatype( '0.1' , 'N')     =>       1     ; 
+is   datatype( '00'  , 'N')     =>       1     ; 
+is   datatype( '0a'  , 'A')     =>       1     ; 
+is   datatype( '0.a' , 'A')     =>       0     ; 
 
 #### Extra
-is   datatype( '33'  , 'xLT')  ,   undef  ; 
-#is  datatype( ''          )   ,   'NUM'  ; 
-#is  datatype( '33'  ,''   )   ,   'NUM'  ; 
+is   datatype( ''         )     =>   'CHAR'    ; 
+dies_ok  { datatype( '33'  , 'xLT')  }         ;
+dies_ok  {  datatype( '33'  ,''   )  }         ; 

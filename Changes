@@ -1,10 +1,22 @@
 Revision history for Perl extension String::Rexx.
 
-0.03  Thu Jul 30
+0.04  Sat Apr 30, 2005
+    - Introduced the following new Rexx functions:
+      sign, b2d, d2x, x2b, b2x, x2c, x2d, c2x,  d2b    
+    - Renamed the old function d2h to the new name d2x
+    - Minor fixes and code cleanup for the following functions:
+      changestr, wordindex, copies, space, wordlength,  
+      countstr, delword, strip, verify, subword, word, xrange
+    - Major rewrite for functions datatype(), and wordpos()
+    - Added prereq_pm to Regexp::Common and Test::Exception
+    - Added more tests for fixed functions 
+
+
+0.03  Thu Jul 30, 2003
     - Corrected Abstract 
     - removed CVS/ entries from manifest
 
-0.02  Thu Jul 30
+0.02  Thu Jul 30, 2003
     -  This release is institutes stroger refactoring and paramaeter checking:
     -  Added Params::Validate  to center, copies, errortext, left, 
        right, space, verify, insert, lastpos, overlay, wordindex, xrange,

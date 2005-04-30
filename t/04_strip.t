@@ -1,29 +1,41 @@
 use Test::More ;
+use Test::Exception;
 use String::Rexx qw(strip) ;
 
 
-BEGIN { plan tests =>  14  };
+BEGIN { plan tests =>  23  };
 
 
 ### Basic Functionality
 
-is  strip(   The     => 'leading'        )  , 'The'   ,  'leading' ;
-is  strip( ' The'    => 'LEADING'        )  , 'The'   ;
-is  strip( ' The'    => 'leading '       )  , 'The'   ; 
-is  strip( '_The'    =>  leading => '_'  )  , 'The'   ; 
+is  strip( 'The'      ,  'l'       )    =>    'The'     ,  'leading' ;
+is  strip( ' The'     ,  'L'       )    =>    'The'     ;
+is  strip( ' The'     ,  'l'       )    =>    'The'     ; 
+is  strip( '_The'     ,   l => '_' )    =>    'The'     ; 
+is  strip( '  strip  ',   l =>     )    =>    'strip  ' ;
+is  strip( '  strip  ',   L =>     )    =>    'strip  ' ;
 
-is  strip(  The      => 'trailing'       )  ,  'The'  ,  'trailing';
-is  strip( 'The '    => 'TRAILING'       )  ,  'The'  ; 
-is  strip( 'The '    => 'Trailing'       )  ,  'The'  ; 
-is  strip(  The_     =>  Trailing => '_' )  ,  'The'  ; 
+is  strip( 'The'      , 't'        )    =>    'The'     ,  'trailing';
+is  strip( 'The '     , 'T'        )    =>    'The'     ; 
+is  strip( 'The_'     ,  T=> '_'   )    =>    'The'     ; 
+is  strip( '  strip  ', T =>       )    =>    '  strip' ;
 
-is  strip(  The      => 'both'           )  ,  'The'  ,  'both' ; 
-is  strip( ' The '   => 'BOTH '          )  ,  'The'  ;
-is  strip(  _The_    => 'BOTH ' , '_'    )  ,  'The'  ;
-is  strip(  __The__  => 'BOTH ' , '_'    )  ,  'The'  ;
+
+is  strip( 'The'      , 'b'        )    =>    'The'     ,  'both' ; 
+is  strip( ' The '    , 'B'        )    =>    'The'     ;
+is  strip( '_The_'    , 'B' , '_'  )    =>    'The'     ;
+is  strip( '__The__'  , 'B' , '_'  )    =>    'The'     ;
+is  strip( '  strip  ',  B =>      )    =>    'strip'   ;
+is  strip( '  strip  ',    =>      )    =>    'strip'   ;
+is  strip( '  strip  ',            )    =>    'strip'   ;
+
 
 
 ### Extra
+is  strip( '**strip**', L  => '*'  )    =>   'strip**'   ;
+is  strip( '++strip++', L  => '+'  )    =>   'strip++'   ;
+is  strip( '..strip..', L  => '.'  )    =>   'strip..'   ;
+is  strip( '..strip..', L  => '.'  )    =>   'strip..'   ;
 
 SKIP: {
 	eval {  require Test::Exception ; Test::Exception::->import } ;

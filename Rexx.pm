@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Carp;
 use Params::Validate ':all' ;
+use Regexp::Common;
 
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
@@ -12,17 +13,25 @@ use AutoLoader qw(AUTOLOAD);
 our @ISA = qw(Exporter);
 
 our %EXPORT_TAGS = ( 'all' => [ qw(
-                      centre     center     changestr    compare    copies     countstr 
-		      delstr     delword    datatype     d2c        d2h
-		      errortext  insert     lastpos      left       Length     overlay    
-		      Pos        right      Reverse      Abbrev
-		      space      Substr     strip        subword    translate  verify 
-		      word       wordindex  wordlength   wordpos    words      xrange   
+       centre     center     changestr    compare    copies     countstr 
+       delstr     delword    datatype     d2c        b2d        d2x    
+       x2b        b2x        x2c          x2d        c2x   
+       d2b        errortext  insert       lastpos    left       Length     
+       overlay    Pos        right        Reverse    Abbrev     sign
+       space      Substr     strip        subword    translate  verify 
+       word       wordindex  wordlength   wordpos    words      xrange   
 ) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
+
+use constant BINARY        =>  qr/^[01]{0,32}$/;
+use constant REAL          =>  $RE{num}{real};
+use constant HEX8          =>  qr/^(?:0x)?[\dabcdef]{0,8}$/i  ;
+use constant HEX           =>  qr/^(?:0x)?[\dabcdef]*$/  ;
+use constant NONNEGATIVE   =>  qr/^[+]?[\d]+$/;
+use constant POSITIVE      =>  qr/^[+]?[1-9]+$/;
 
 
 1;
@@ -42,8 +51,7 @@ String::Rexx - Perl implementation of Rexx string functions
 =head1 DESCRIPTION
 
 This module implements almost all string functions
-of regina2-rexx . The fuctions not yet implemented are
-related to hexsting, binstring, and decimal conversions.
+of regina2-rexx . 
 
 
 =over
@@ -107,7 +115,7 @@ related to hexsting, binstring, and decimal conversions.
 
  Same as chr(N) . Converts decimal N to its char in the character set. 
 
-=item  d2h( N [, length] )
+=item  d2x( N [, length] )
 
  Converts decimal N to a hex string of size $lenght .
 
@@ -266,9 +274,8 @@ sub center ($$;$) {
 sub centre ($$;$)  { &center }
 
 sub  changestr ($$$) {
-	my ( $old , $string, $new) = @_ ;
-        $string  =~  s/$old/$new/g ;
-        $string;
+        my ( $old , $string, $new) = @_ ;
+        $string  =~  s/\Q$old/$new/g      ,  $string;
 }
 
 sub compare ($$;$)  {
@@ -286,45 +293,42 @@ sub compare ($$;$)  {
 }
 
 
-sub copies ($$) {
-        my ( $string, $num ) = validate_pos  @_  , { type  => SCALAR           } ,
-                                                   { regex => qr/^\+?\s*\d+$/  } ,;
-        $string x= $num ;
-}
-
-sub countstr ($$)  {
-	my ( $pat , $string ) = @_ ;
-	return 0 unless $pat ;
-        $string =~ s/$pat//g   or  0 ;
+sub  copies ($$)  {
+        my ( $str , $num ) = validate_pos  @_ ,
+                                     { type  => SCALAR      },
+                                     { regex => NONNEGATIVE } ;
+        $str x $num ;
 }
 
 
-sub datatype ($;$) {
-      my    $str    =  shift ;
-      local $_      =  shift || 'none' ;
-      local $SIG{__WARN__} = \() ;
-
-      eval "$str + 1 " ;
-      my $type = $@ ? 'LIT' : 'NUM' ;
-
-      /^ NUM $/xi   and   return ($type eq 'NUM') ? 1 : 0    ;
-      /^ LIT $/xi   and   return ($type eq 'LIT') ? 1 : 0    ;
-      /none/        and   return $type                       ;
-      undef;
+sub countstr ($$) {
+        (my ($pat), local $_) = @_ ;
+	($pat eq '')  ? 0 :  ( () =  /\Q$pat/gx ) ;
 }
+
+
+
+sub  datatype ($;$)  {
+        my ($real, $str, $option) = (REAL, validate_pos @_,
+                                    { type => SCALAR },
+                                    { regex => qr/^[ablmnuwx]$/i, optional=>1});
+                (defined $option)
+                ?  $str  =~ {      A  =>   '(?i)^[a-z\d]+$'   ,
+                                   B  =>   '^[01]+$'          ,
+                                   L  =>   '^[a-z]+$'         ,
+                                   M  =>   '(?i)^[a-z]+$'     ,
+                                   N  =>   "^$real\$"         ,
+                                   U  =>   '^[A-Z]+$'         ,
+                                   W  =>   '^[-+]?[\d]+$'     ,
+                                   X  =>   '(?i)^[\da-f]+$'   ,
+                             }->{uc $option} || 0
+                :  ($str =~ /^$real$/)  && 'NUM' || 'CHAR'  ;
+}
+
 
 
 sub d2c ($) {
       chr(shift) ;
-}
-
-
-sub d2h ($;$) {
-      my ($decimal, $len ) = validate_pos  @_ ,
-                             { regex => qr/^\+?\s*\d+$/             },
-                             { regex => qr/^\+?\s*\d+$/, default=>0 };
-
-      sprintf '%0'.$len.'x',  $decimal ;
 }
 
 
@@ -341,18 +345,16 @@ sub  delstr ($$;$)  {
 }
 
 
-sub  delword ($$;$)   {
-        my ($str, $start, $len ) = validate_pos  @_ ,
-                                      { type  => SCALAR              },
-                                      { regex => qr/^\+?\s*\d+$/     },
-                                      { regex => qr/^\+?\s*\d+$/ ,
-                                        default => length $_[0]      };
-
-        $str  =~  m/\S+\s*/gc      for 1..--$start ;
-        $str  =~  s/ \G (?:\S+\s*){0,$len} //x     ;
-        $str ;
+sub delword ($$;$) {
+     (local $_, my ($start,$count))= validate_pos @_ ,
+                                            {type => SCALAR},
+                                            {regex=> NONNEGATIVE, default=>1  },
+                                            {regex=> NONNEGATIVE, default=>3E4};
+     $start-- ;
+     / ^ (?:\S+\s*){$start} /xg   or  return $_ ;
+     s/(?:(?<=^)|(?<=\s))  \G (\s*\S+){0,$count} \s* //x      ,   $_ ;
 }
- 
+
 
 sub errortext ($) {
         local ($!)  = validate_pos @_ , { regex => qr/^\+?\s*\d+$/  } ,;
@@ -440,14 +442,15 @@ sub Reverse ($)   {
 
 
 sub  space ($;$$)  {
-        local $_ = shift;
-        my ($len , $char) =  validate_pos  @_ ,
-                                  { regex => qr/^\+?\s*\d+$/  , default => 1   },
-                                  { regex => qr/^.$/          , default => ' ' } ,;
+        (local $_, my ($len , $char)) =  validate_pos  @_ ,
+                                  { type  => SCALAR },
+                                  { regex => NONNEGATIVE, default => 1  },
+                                  { regex => qr/^.$/s   , default => ' '};
 
-        s/^\s*|\s*$//g                  ;     # strip leading & trailing spaces
-        s/\s+/{ $char x $len }/eg  , $_ ;     # add proper spacing and return $_
+        s/^\s*|\s*$//g                  ;
+        s/\s+/{ $char x $len }/eg  , $_ ;
 }
+
 
 
 sub  Substr ($$;$$)  {
@@ -457,23 +460,19 @@ sub  Substr ($$;$$)  {
 	substr($str, $start-1, $len)   .   $char  x $padding    ,
 }
 
-sub  strip ($;$$)  {
-        my ( $str, $direction, $char )  = @_ ;
+sub strip ($;$$) {
+        (local $_, my ( $direction, $char)) = validate_pos @_  ,
+                                             { type  => SCALAR       },
+                                             { regex => qr/^[LTB]$/i  ,
+                                               default => 'B'         },
+                                             { regex => qr/^\S$/, default=>' '};
+        my $pattern =  { L    =>  "^[$char]+"             ,
+                         T    =>  "[$char]+\$"            ,
+                         B    =>  "^[$char]+|[$char]+\$"  ,
+                       }->{ uc $direction }  ;
 
-        $direction    =~  s/\s*$//             ;
-        my $R         =  $char || '\s'         ;
-        my $both      =  [qr/^$R*/, qr/$R*$/ ] ;
-
-        my $patterns  = { leading  => [ qr/^$R*/ ] ,
-                          trailing => [ qr/$R*$/ ] ,
-                          both     => $both        ,
-                          ''       => $both        ,
-                        }->{ lc $direction } || croak "incorrect call to routine\n";
-
-        $str =~ s/$_//   for @{$patterns}   ;
-        $str;
+        s/ $pattern //gx   , $_ ;
 }
-
 
 
 sub translate ($;$$$) {
@@ -488,75 +487,74 @@ sub translate ($;$$$) {
 
 
 sub verify ($$;$$)   {
-           ( local $_,  my ($s, $option, $start))  =
-                         validate_pos  @_ , { type  => SCALAR                        },
-                                            { type  => SCALAR                        },
-                                            { regex => qr/^(M|N)$/i, default => 'M'  },
-                                            { type  => SCALAR, default => 1          },;
+        (local $_, my ($ref, $opt, $start)) =
+                                         validate_pos @_ ,
+                                         { type => SCALAR },
+                                         { type => SCALAR },
+                                         { regex => qr/^[NM]$/i, default=>'N' },                                         { regex => POSITIVE,    default=> 1  };
+	  return 0 if $ref eq '';
+          my $pattern = qr/ (?: [\Q$ref\E]) /x ;
+          pos()  = --$start;
 
-           return 1  unless $s ;
-           my $pat  =    ($option =~ /^M$/i)   ? qr/[$s]*/
-                                               : qr/[^$s]*/  ;
-           pos()    =  --$start ;
-
-           /$pat/gx ;
-           (pos() == length)  ? 0 : 1+pos ;
+          ($opt =~ /N/i)
+             ?    do{  /\G $pattern+/xgc;
+                       return (pos == length) ? 0  : 1 + pos }
+             :    /$pattern/gc or return 0;
+                  pos ;
 }
 
 
 
 sub word  ($$)  {
-         (local $_, my $num)  = validate_pos @_ ,
-                                     { type => SCALAR },
-                                     { regex => qr/^\+?\s*\d+$/ },;
+        (local $_, my $start) = validate_pos @_ ,
+                                    { type  => SCALAR   }  ,
+                                    { regex => POSITIVE }  ;
 
-         (split) [ $num -1 ]  || ''  ;
+        $start--;
+        / ^ (?>\s* (?:\S+\s*){$start}) (\s*\S+)  /x
+        and $+;
 }
 
 
 
-sub  wordindex ($$)  {
-        my ($str , $num) = validate_pos  @_ , { type => SCALAR           },
-                                              { regex => qr/^\+?\s*\d+$/ },;
+sub wordindex ($$) {
+        my ($str, $n) = validate_pos @_ , { type  => SCALAR      },
+                                          { regex => NONNEGATIVE } ;
 
-        pos($str) =   0  ;
-        $str      =~  / \s*/gx  ;
-        $str      =~  / \S+ \s+ /xg     for  1..$num-1 ;
-        1+ pos $str;
+        (' '.$str) =~ / (?:\s+ (\S+)){$n} /x
+        && $-[1] or 0;
 }
 
 
 
-sub  wordlength ($$)  {
-        (local $_ , my $num ) = validate_pos @_ ,
-                                  { type  => SCALAR },
-                                  { regex => qr/^\+?\s*\d+$/ },;
+sub wordlength ($$) {
+        my ($str, $n)  =   validate_pos @_ ,  { type  => SCALAR      },
+                                              { regex => NONNEGATIVE };
 
-        length(  (split)[$num-1]   ||  '' ) ;
+        (' '.$str) =~ / (?:\s (\S+)){$n} /x
+                ? length ($1||'')
+                : 0 ;
 }
 
 
 sub  subword ($$;$)  {
-        my ($string, $start, $len)  =  validate_pos  @_ ,
-                                         { type => SCALAR                           },
-                                         { regex => qr/^\+?\s*\d+$/                 },
-                                         { regex => qr/^\+?\s*\d+$/ , optional => 1 };
+        (local $_, my ($start, $n)) = validate_pos @_ ,
+                                    { type  => SCALAR   }  ,
+                                    { regex => POSITIVE }  ,
+                                    { regex => NONNEGATIVE , default => 3e3 };
 
-
-        $string         =~  /\S+\s*/g    for 1..$start-1;
-        $b              =  pos($string) || 0            ;
-        (defined $len)  ?  do{ $string =~ /\S+/gc  for 1..$len;
-                               substr $string, $b, ((pos $string ||0)-($b)) }
-                        :  substr $string, $b;
+        $start--;
+        / ^ (?>\s* (?:\S+\s*){$start}) ((?:\s*\S+){0,$n})  /x
+        and $+;
 }
  
 
-sub wordpos ($$)  {
-      ( my $pat, local $_ )   =  validate_pos @_ , { type => SCALAR },
-                                                   { type => SCALAR };
+sub wordpos ($$) {
+        (my $pat, local $_, my $i) = @_ ;
 
-       / (?=\b\w*$pat) /xg     ?  1+ pos
-                               :  0;
+	 return  0 if  $pat eq '';
+         $i++ while ( /  \G  (?>\s*\S+)  (?<!\Q$pat\E)   /xcg) ;
+         ((pos||0) == length) ? 0 : ++$i ;
 }
 
 
@@ -567,12 +565,70 @@ sub words ($)  {
 
 
 sub xrange ($$) {
-         my ($start, $end ) = validate_pos  @_ ,
-                                  { regex => qr/^.$/ },
-                                  { regex => qr/^.$/ };
-
-         join '', $start..$end ;
+        my ($start, $end) = @_ ;
+        my $len =  1 + ord ($end) - ord ($start);
+        return pack 'A'x$len , $start..$end     if $len>0 ;
+        pack 'A'x(257+$len) ,  $start..chr(0xff) , chr(0)..$end ;
 }
 
 
+sub b2d {
+         (local $_) =  validate_pos @_ , { regex => qr/^[01]+$/ } ;
+         eval "0b$_";
+
+        # Method2  (4x faster)
+        # pack 'A*', unpack 'N', pack  'B32', '0'x (32-length) .$_ ;
+}
+
+sub d2x {
+        validate_pos @_,  { regex => NONNEGATIVE } ;
+
+        local $_ = pack '(A*)*', unpack '(H2)*', pack 'N', shift ;
+        s/^0*//g ;
+        $_ or '0';
+}
+
+
+sub sign ($) {
+       ($_[0] > 0) ?  1
+                   :  ($_[0]<0) ? -1
+                                :  0 ;
+}
+
+sub x2b {
+        local ($_)   =  validate_pos @_,  { regex => HEX } ;
+
+        $_ = '0'x(8-(length||return '')) . $_ ;
+        ($_=unpack 'B32', pack 'H*', $_ )  =~  s/^0*(?!$)// ,     $_ ;
+}
+
+sub b2x {
+        local ($_)   =  validate_pos @_,  { regex => BINARY } ;
+
+        $_ = '0'x(32-(length||return '')) . $_ ;
+        ($_ = unpack 'H*', pack 'B32', $_ )  =~   s/^ 0* (?!$) //x   , $_;
+}
+
+sub x2c {
+        validate_pos @_ , { regex => HEX } ;
+        unpack 'A*', pack 'H*', (shift||return '');
+}
+
+
+sub x2d {
+        validate_pos @_ , { regex => HEX } ;
+        hex shift;
+}
+
+sub c2x {
+        pack '(A*)*', unpack '(H2)*', shift;
+}
+
+sub d2b {
+        validate_pos  @_ ,  { regex => NONNEGATIVE };
+
+        local $_ = unpack 'B32'x8, pack 'N', shift ;
+        s/^0*//g ;
+        '0' x (8-(length)%8) . $_;
+}
 
