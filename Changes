@@ -1,5 +1,10 @@
 Revision history for Perl extension String::Rexx.
 
+0.05  Fri Sep 23, 2005 
+       - Packaging changes to keep CPANTS happy.
+       - Now, also builds with Module::Build.
+       - Changed META.yaml
+
 0.04  Sat Apr 30, 2005
     - Introduced the following new Rexx functions:
       sign, b2d, d2x, x2b, b2x, x2c, x2d, c2x,  d2b    

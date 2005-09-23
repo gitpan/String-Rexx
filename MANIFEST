@@ -1,9 +1,8 @@
+Build.PL
 Changes
-Makefile.PL
+lib/String/Rexx.pm
 MANIFEST			This list of files
-META.yml
 README
-Rexx.pm
 t/00_main.t
 t/01_wordlength.t
 t/02_words.t
@@ -43,3 +42,7 @@ t/35_x2c.t
 t/37_x2d.t
 t/38_c2x.t
 t/39_d2b.t
+t/pod-coverage.t
+t/pod.t
+META.yml
+Makefile.PL

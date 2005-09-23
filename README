@@ -9,7 +9,7 @@ This module implements the string-related functions of
 regina2-rexx, with approximately 40 functions that 
 manipulate numbers and text.
 
-No knowledge of Rexx is needed or desired. 
+No knowledge of Rexx needed or desired. 
 
 This package will prove useful to those not yet
 comfortable with regex, or to those who desire the

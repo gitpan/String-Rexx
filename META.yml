@@ -1,14 +1,21 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         String-Rexx
-version:      0.04
-version_from: Rexx.pm
-installdirs:  site
+--- #YAML:1.0
+name: String-Rexx
+version: 0.05
+author:
+  - Ioannis Tambouras <ioannis@yahoo.com>
+abstract: Perl implementation of Rexx string functions
+license: perl
 requires:
-    Params::Validate:              0
-    Regexp::Common:                0
-    Test::Exception:               0
-    Test::More:                    0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+  Params::Validate: 0
+  Regexp::Common: 0
+  perl: 5.6
+recommends:
+  Test::Exception: 0
+  Test::More: 0
+  Test::Pod: 0
+  Test::Pod::Coverage: 1.0
+provides:
+  String::Rexx:
+    file: lib/String/Rexx.pm
+    version: 0.05
+generated_by: Module::Build version 0.2611

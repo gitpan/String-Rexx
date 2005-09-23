@@ -24,7 +24,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use constant BINARY        =>  qr/^[01]{0,32}$/;
 use constant REAL          =>  $RE{num}{real};
