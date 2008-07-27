@@ -1,21 +1,15 @@
 --- #YAML:1.0
-name: String-Rexx
-version: 0.05
-author:
-  - Ioannis Tambouras <ioannis@yahoo.com>
-abstract: Perl implementation of Rexx string functions
-license: perl
-requires:
-  Params::Validate: 0
-  Regexp::Common: 0
-  perl: 5.6
-recommends:
-  Test::Exception: 0
-  Test::More: 0
-  Test::Pod: 0
-  Test::Pod::Coverage: 1.0
-provides:
-  String::Rexx:
-    file: lib/String/Rexx.pm
-    version: 0.05
-generated_by: Module::Build version 0.2611
+name:                String-Rexx
+version:             0.07
+abstract:            Perl implementation of Rexx string functions
+license:             perl
+author:              
+    - Ioannis Tambouras <ioannis@earthlink.net>
+generated_by:        ExtUtils::MakeMaker version 6.42
+distribution_type:   module
+requires:     
+    Params::Validate:              0
+    Regexp::Common:                0
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

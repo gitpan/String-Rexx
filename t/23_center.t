@@ -3,8 +3,8 @@ use Test::More ;
 use String::Rexx qw(center);
  
 
-BEGIN { plan tests =>  12  };
 
+BEGIN { plan tests =>  12  };
 
 ### Basic Usage
 is   center( 'a' , 0 )        ,  ''            ;

@@ -3,7 +3,7 @@ my $b= Module::Build->new(
 	module_name        => 'String::Rexx',
 	dist_version_from  => 'lib/String/Rexx.pm',
 	dist_author        => 'Ioannis Tambouras <ioannis@yahoo.com>',
-	requires           => {  perl                => '5.6',
+	requires           => {  perl                => '5.006',
 				'Params::Validate'   =>  0 ,
 			        'Regexp::Common'     =>  0 , 
                               },

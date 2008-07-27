@@ -1,7 +1,12 @@
 Build.PL
 Changes
+examples
 lib/String/Rexx.pm
+LICENSE
+ls
+Makefile.PL
 MANIFEST			This list of files
+META.yml
 README
 t/00_main.t
 t/01_wordlength.t
@@ -42,7 +47,6 @@ t/35_x2c.t
 t/37_x2d.t
 t/38_c2x.t
 t/39_d2b.t
+t/makefile
 t/pod-coverage.t
 t/pod.t
-META.yml
-Makefile.PL

@@ -1,6 +1,7 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
+          'LICENSE'      => 'perl',
           'PL_FILES'     => {},
           'INSTALLDIRS'  => 'site',
           'NAME'         => 'String::Rexx',

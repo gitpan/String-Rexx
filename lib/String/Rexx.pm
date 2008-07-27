@@ -7,10 +7,9 @@ use Carp;
 use Params::Validate ':all' ;
 use Regexp::Common;
 
-require Exporter;
-use AutoLoader qw(AUTOLOAD);
+use base  'Exporter';
+#use AutoLoader qw(AUTOLOAD);
 
-our @ISA = qw(Exporter);
 
 our %EXPORT_TAGS = ( 'all' => [ qw(
        centre     center     changestr    compare    copies     countstr 
@@ -24,7 +23,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our $VERSION = '0.05';
+our $VERSION = '0.07';
 
 use constant BINARY        =>  qr/^[01]{0,32}$/;
 use constant REAL          =>  $RE{num}{real};
@@ -35,7 +34,7 @@ use constant POSITIVE      =>  qr/^[+]?[1-9]+$/;
 
 
 1;
-__END__
+=pod
 
 =head1 NAME
 
@@ -247,11 +246,9 @@ L<regina(1)>.
 
 sub Abbrev ($$;$) {
          ( local $_ , my ( $short , $len )) =  validate_pos @_ ,
-                                        { type  => SCALAR              },
-                                        { type  => SCALAR              },
-                                        { regex => qr/^\+?\s*\d+$/, 
-                                                   optional=>1         };
-
+				{ type  => SCALAR              },
+				{ type  => SCALAR              }, 
+				{ regex => qr/^\+?\s*\d+$/, optional=>1  }; 
 
           /^$short/  ||  ((defined $len)&&length $short >= $len)    ? 1
                                                                     : 0  ;
@@ -260,18 +257,20 @@ sub Abbrev ($$;$) {
 
 sub center ($$;$) {
 
-       my ($str , $len , $char) =  validate_pos @_  , { type  => SCALAR                   } ,
-                                                      { regex => qr/^\+?\s*\d+$/          } ,
-						      { regex => qr/^.$/ , default => ' ' },
+       my ($str , $len , $char) =  validate_pos @_  , 
+			  	  { type  => SCALAR } ,
+			          { regex => qr/^\+?\s*\d+$/          } ,
+			          { regex => qr/^.$/ , default => ' ' },
                                                       ;
 
-       $str       =  substr( $str, 0, $len )   ;  # if they asked less space than given text
+       $str       =  substr( $str, 0, $len )   ;  # if they asked  for less space than given text
        my $offset =  ($len -  length $str)/2  ;
        ($char x $offset)   . $str  .  ($char x ($offset+0.6) )   ;
 }
 
 
-sub centre ($$;$)  { &center }
+
+sub centre ($$;$)  { goto &center }
 
 sub  changestr ($$$) {
         my ( $old , $string, $new) = @_ ;
@@ -452,13 +451,13 @@ sub  space ($;$$)  {
 }
 
 
-
 sub  Substr ($$;$$)  {
         my ($str, $start, $len, $char) = @_ ;
-	my $slen = length($str) || return '' ;
-	my $padding = ( $slen && $start) + $len - ($slen && 1) - $slen ;
-	substr($str, $start-1, $len)   .   $char  x $padding    ,
+        my $slen = length($str) || return '' ;
+        my $padding = ( $slen && $start) + $len - ($slen && 1) - $slen ;
+        substr($str, $start-1, $len)   .   $char  x $padding    ,
 }
+
 
 sub strip ($;$$) {
         (local $_, my ( $direction, $char)) = validate_pos @_  ,
@@ -559,10 +558,8 @@ sub wordpos ($$) {
 
 
 sub words ($)  {
-	local $_    =  shift;
-        scalar ( () =  /(\S+)/g   );
+        scalar ( () =  shift() =~ /(\S+)/g   );
 }
-
 
 sub xrange ($$) {
         my ($start, $end) = @_ ;
