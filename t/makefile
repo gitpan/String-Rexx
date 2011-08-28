@@ -16,19 +16,28 @@
 #all:                 37_x2d.t           38_c2x.t
 #all:  39_d2b.t       pod.t              pod-coverage.t
 
+current = 00_load.t
+current = 01s_spelling.t
+current = 01c_coverage.t
+current = 26_translate.t
+
 all:  pod-coverage.t
+all: $(current)
 
 
 MODULES  =  -MData::Dumper -MCarp  -MParams::Validate=':all'
 MODULES +=  -MTest::More   -MTest::Exception  # -MString::Rexx=':all'
 
-p* 0*t 1*t 2*t 3*t:
+p* 0* 1* 2* 3* 4*:
 	perl -w -Mstrict -Mblib=../blib/lib  $(MODULES)   $@  
 
 w:
 	chmod +w ../blib/lib/String/Rexx.pm
 vi: w
-	vi ../blib/lib/String/Rexx.pm
+	vi -p $(current) ../blib/lib/String/Rexx.pm
 cp:
 	cp ../blib/lib/String/Rexx.pm  ../lib/String/
-
+test:
+	make -sC .. test
+help:
+	echo test vi 

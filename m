@@ -1,9 +1,9 @@
 use 5.008008;
 use inc::Module::Install;
-name           'String-Rexx'             ;
+name           'IO-Infiles'              ;
 license        'perl'                    ;
-all_from       'lib/String/Rexx.pm'      ;
-abstract_from  'lib/String/Rexx.pm'      ;
+all_from       'lib/IO/Infiles.pm'       ;
+abstract_from  'lib/IO/Infiles.pm'       ;
 no_index       directory  => 'examples'  ;
 author         'Ioannis Tambouras <ioannis@cpan.org>';
 
@@ -12,8 +12,6 @@ requires
 #	     'List::MoreUtils'     => '0.32',
 #         'namespace::autoclean'=> '0.12',
 #	     'List::Util'          => '1.23',
-              'Regexp::Common'      => '2011041701',
-              'Params::Validate'    => '0.99',
 ;
 test_requires 
               'Test::Pod'           => '1.45',
@@ -29,7 +27,3 @@ test_requires
 ;
 auto_install;
 WriteAll;
-
-;
-
-
